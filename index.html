@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Family Planner</title>
+<style>
+*{box-sizing:border-box;-webkit-box-sizing:border-box;-webkit-tap-highlight-color:rgba(0,0,0,0)}
+html,body{margin:0;height:100%;overflow:hidden;background:#f6f3ee;color:#2b2b2b;font-family:Roboto,"Droid Sans",Arial,sans-serif}
+#app{position:absolute;left:0;right:0;top:0;bottom:0}
+/* header */
+#hdr{position:absolute;left:0;right:0;top:0;height:74px;padding:10px 18px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center}
+#clock{font-size:40px;font-weight:300;min-width:150px}
+#ampm{font-size:16px;color:#888;margin-left:3px}
+#today{font-size:18px;color:#555;line-height:1.25;margin-left:10px;-webkit-flex:1;flex:1}
+#today b{font-size:22px;color:#2b2b2b;font-weight:500;display:block}
+#wxbox{text-align:right;font-size:15px;color:#666;line-height:1.3}
+#wxbox b{font-size:28px;color:#2b2b2b;font-weight:400}
+#wxicon{font-size:26px;margin-right:6px;color:#f2a33a}
+/* member chips */
+#members{position:absolute;left:18px;right:18px;top:74px;height:34px;white-space:nowrap;overflow:hidden}
+.mem{display:inline-block;padding:5px 12px 5px 6px;margin-right:8px;border-radius:17px;background:#fff;font-size:15px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.mem i{display:inline-block;width:20px;height:20px;border-radius:10px;vertical-align:middle;margin-right:6px;color:#fff;font-style:normal;font-size:12px;text-align:center;line-height:20px;font-weight:bold}
+/* main card */
+#main{position:absolute;left:12px;right:12px;top:112px;bottom:66px;background:#fff;border-radius:18px;box-shadow:0 2px 10px rgba(0,0,0,.07);overflow:hidden}
+.view{position:absolute;left:0;right:0;top:0;bottom:0;display:none;overflow:hidden}
+.view.on{display:block}
+/* week */
+#week{display:none}
+#week.on{display:-webkit-flex;display:flex}
+.connect{position:absolute;left:50%;top:42%;width:420px;margin-left:-210px;background:#fff;border-radius:16px;padding:18px 20px;text-align:center;font-size:16px;line-height:1.6;color:#555;box-shadow:0 4px 20px rgba(0,0,0,.12)}
+.connect b{font-size:20px;color:#2b2b2b;font-weight:500}
+.wcol{-webkit-flex:1;flex:1;border-right:1px solid #f0ece6;padding:8px 6px;overflow:hidden;min-width:0}
+.wcol:last-child{border-right:0}
+.wcol.today{background:#fbf8f2}
+.wh{text-align:center;font-size:13px;color:#999;text-transform:uppercase;letter-spacing:1px}
+.wn{text-align:center;font-size:24px;margin:2px auto 8px;width:38px;height:38px;line-height:38px;border-radius:19px}
+.today .wn{background:#2b2b2b;color:#fff}
+.chip{border-radius:8px;padding:5px 7px;margin-bottom:5px;font-size:14px;line-height:1.2;overflow:hidden;border-left:4px solid #999;background:#f3f3f3}
+.chip .t{font-size:12px;opacity:.75;display:block}
+.chip.ad{color:#fff;border-left:0}
+/* month */
+#mhead{height:40px;line-height:40px;text-align:center;font-size:20px;position:relative}
+#mhead span{position:absolute;top:0;width:60px;font-size:26px;color:#999}
+#mgrid{position:absolute;top:40px;left:0;right:0;bottom:0}
+.mrow{display:-webkit-flex;display:flex;height:16.66%}
+.mcell{-webkit-flex:1;flex:1;border-top:1px solid #f0ece6;border-right:1px solid #f0ece6;padding:3px 4px;overflow:hidden;font-size:11px;min-width:0}
+.mcell .n{font-size:13px;color:#666}
+.mcell.other{background:#faf9f7;color:#bbb}
+.mcell.today .n{background:#2b2b2b;color:#fff;border-radius:9px;padding:0 5px}
+.mev{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px;padding:0 3px;margin-top:2px;color:#fff}
+/* day */
+#day{padding:14px 22px;overflow-y:auto}
+#day h2{margin:0 0 10px;font-weight:400;font-size:24px}
+.dev{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;padding:10px 12px;margin-bottom:8px;border-radius:12px;font-size:20px}
+.dev .tm{width:120px;font-size:16px;color:#666}
+/* chores + lists */
+#chores,#lists{display:none;padding:12px}
+#chores.on,#lists.on{display:-webkit-flex;display:flex}
+.ccol{-webkit-flex:1;flex:1;margin:0 6px;background:#faf8f4;border-radius:14px;padding:10px;overflow-y:auto;min-width:0}
+.ccol h3{margin:0 0 8px;font-size:18px;font-weight:500}
+.ccol h3 i{display:inline-block;width:12px;height:12px;border-radius:6px;margin-right:6px}
+.item{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;background:#fff;border-radius:10px;padding:10px;margin-bottom:7px;font-size:17px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.box{width:26px;height:26px;border-radius:13px;border:2px solid #ccc;margin-right:10px;text-align:center;line-height:22px;color:#fff;font-size:16px;-webkit-flex-shrink:0;flex-shrink:0}
+.done .box{background:#5cb85c;border-color:#5cb85c}
+.done .lbl{text-decoration:line-through;color:#aaa}
+.lbl{-webkit-flex:1;flex:1}
+.del{color:#ccc;font-size:20px;padding:0 6px}
+.addrow{display:-webkit-flex;display:flex;margin-bottom:8px}
+.addrow input{-webkit-flex:1;flex:1;font-size:17px;padding:8px 10px;border:1px solid #ddd;border-radius:10px;min-width:0}
+.btn{display:inline-block;background:#2b2b2b;color:#fff;border-radius:10px;padding:9px 16px;font-size:16px;margin-left:6px;border:0}
+.stars{float:right;color:#f2a33a;font-size:15px}
+/* nav */
+#nav{position:absolute;left:0;right:0;bottom:0;height:62px;text-align:center;padding-top:9px}
+.tab{display:inline-block;padding:10px 18px;margin:0 3px;border-radius:22px;font-size:16px;color:#666;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.tab.on{background:#2b2b2b;color:#fff}
+#addbtn{background:#f2a33a;color:#fff}
+/* add-event sheet */
+#sheet{display:none;position:absolute;left:0;right:0;top:0;bottom:0;background:rgba(0,0,0,.35);z-index:20}
+#sheet .card{position:absolute;left:50%;top:6%;width:440px;margin-left:-220px;background:#fff;border-radius:18px;padding:18px}
+#sheet input,#sheet select{width:100%;font-size:17px;padding:8px;margin:4px 0 10px;border:1px solid #ddd;border-radius:10px;background:#fff}
+#sheet .half{display:inline-block;width:48%}
+#msg{font-size:14px;color:#c0392b;min-height:18px}
+/* settings */
+#settings{display:none;position:absolute;left:0;right:0;top:0;bottom:0;background:rgba(0,0,0,.35);z-index:25}
+#settings .card{position:absolute;left:4%;right:4%;top:3%;bottom:3%;background:#fff;border-radius:18px;padding:14px 20px;overflow-y:auto}
+#settings label{display:block;font-size:13px;color:#777;margin-top:6px}
+#settings input,#settings textarea,#settings select{width:100%;font-size:16px;padding:6px 8px;border:1px solid #ddd;border-radius:8px;font-family:inherit;background:#fff}
+#settings .half{display:inline-block;width:48%;vertical-align:top}
+#settings .third{display:inline-block;width:31%;vertical-align:top}
+/* screensaver */
+#saver{display:none;position:absolute;left:0;top:0;right:0;bottom:0;background:#000;z-index:30}
+#saver.grad{background:#f2a33a;background:-webkit-linear-gradient(135deg,#f6b26b 0%,#e67e73 45%,#9b7fd1 100%);background:linear-gradient(135deg,#f6b26b 0%,#e67e73 45%,#9b7fd1 100%)}
+#saver.grad #sinfo{left:0;right:0;bottom:auto;top:30%;text-align:center}
+#saver.grad #sclock{font-size:130px}
+#saver.grad #snext{font-size:26px;line-height:1.5}
+.ph{position:absolute;left:0;top:0;width:100%;height:100%;background-position:center;background-repeat:no-repeat;background-size:contain;opacity:0;-webkit-transition:opacity 1.5s;transition:opacity 1.5s}
+.ph.on{opacity:1}
+#sinfo{position:absolute;left:24px;bottom:20px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8);z-index:31}
+#sclock{font-size:64px;font-weight:300}
+#snext{font-size:18px;opacity:.9}
+.muted{color:#999;font-size:15px;padding:20px;text-align:center}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hdr">
+    <div id="clock">--:--</div>
+    <div id="today"></div>
+    <div id="wxbox"><span id="wxicon"></span><b id="wxnow">--&deg;</b><div id="wxdesc">Loading weather&hellip;</div></div>
+  </div>
+  <div id="members"></div>
+  <div id="main">
+    <div id="week" class="view on"></div>
+    <div id="month" class="view"><div id="mhead"><span id="mprev" style="left:10px">&lsaquo;</span><b id="mtitle"></b><span id="mnext" style="right:10px">&rsaquo;</span></div><div id="mgrid"></div></div>
+    <div id="day" class="view"></div>
+    <div id="chores" class="view"></div>
+    <div id="lists" class="view"></div>
+  </div>
+  <div id="nav">
+    <span class="tab on" data-v="week">Week</span><span class="tab" data-v="month">Month</span><span class="tab" data-v="day">Today</span><span class="tab" data-v="chores">Chores</span><span class="tab" data-v="lists">Lists</span><span class="tab" data-v="photos">Photos</span><span class="tab" id="addbtn">+ Event</span><span class="tab" id="setbtn" style="font-size:20px;padding:7px 14px">&#9881;</span>
+  </div>
+  <div id="sheet"><div class="card">
+    <b style="font-size:20px">New event</b>
+    <input id="ftitle" placeholder="What's happening?">
+    <select id="fcal"></select>
+    <div><span class="half"><input id="fdate" type="date"></span> <span class="half" style="float:right"><input id="ftime" type="time" value="17:00"></span></div>
+    <label style="font-size:16px"><input id="fall" type="checkbox" style="width:auto"> All day</label>
+    <div id="msg"></div>
+    <div style="text-align:right"><span class="btn" id="fcancel" style="background:#aaa">Cancel</span><span class="btn" id="fsave">Save</span></div>
+  </div></div>
+  <div id="settings"><div class="card">
+    <b style="font-size:22px">Settings</b> <span style="color:#999;font-size:14px">saved on this tablet only</span>
+    <label>Google Apps Script link (for calendars, weather, photos, "+ Event")</label><input id="sHelper" placeholder="https://script.google.com/macros/s/.../exec">
+    <label>Apps Script token (the TOKEN word you chose)</label><input id="sToken">
+    <label>Chores: one person per line, like  <i>Max: Make bed, Feed dog</i></label><textarea id="sChores" rows="4"></textarea>
+    <label>Lists (comma separated)</label><input id="sLists">
+    <label>Photo links for the slideshow (one per line, optional)</label><textarea id="sPhotos" rows="3"></textarea>
+    <div><span class="half"><label>Show photos after (minutes idle, 0 = never)</label><input id="sIdle" type="number"></span> <span class="half" style="float:right"><label>Start screen</label><select id="sView"><option>week</option><option>month</option><option>day</option><option>chores</option><option>lists</option></select></span></div>
+    <div><span class="third"><label>Town</label><input id="sPlace"></span> <span class="third"><label>Latitude</label><input id="sLat"></span> <span class="third"><label>Longitude</label><input id="sLon"></span></div>
+    <div id="sMsg" style="color:#c0392b;font-size:14px;min-height:18px;margin-top:6px"></div>
+    <div style="margin-top:4px"><span class="btn" id="sReset" style="background:#c0392b;float:left">Reset all</span><span style="float:right"><span class="btn" id="sCancel" style="background:#aaa">Cancel</span><span class="btn" id="sSave">Save</span></span><div style="clear:both"></div></div>
+  </div></div>
+  <div id="saver"><div id="sinfo"><div id="sclock"></div><div id="snext"></div></div></div>
+</div>
+<script>
+/* ES5 ONLY - written for the Android 4.4 WebView (Chromium 30-33): no fetch, Promise, let/const, arrows, template strings. */
+var DEFAULTS = { place: "Manchester, MO", lat: 38.5917, lon: -90.5093, helperUrl: "", token: "",
+  chores: { "Kid 1": ["Make bed", "Feed the dog", "Homework"], "Kid 2": ["Brush teeth", "Set the table", "Pick up toys"] },
+  lists: ["Groceries", "To Do"], photoUrls: [], idleMinutes: 5, startView: "week", photoSeconds: 15, shufflePhotos: true, refreshMinutes: 10, weekStartsToday: false };
+var C = (function(){ var c = {}, k, saved = null; try { saved = JSON.parse(localStorage.getItem("fp_settings")); } catch (e) {}
+  for (k in DEFAULTS) if (DEFAULTS.hasOwnProperty(k)) c[k] = DEFAULTS[k];
+  if (saved) for (k in saved) if (saved.hasOwnProperty(k)) c[k] = saved[k];
+  return c; })();
+var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+var PALETTE = ["#4a90d9","#e67e73","#57b894","#f2a33a","#9b7fd1","#e5739f","#45b5c4","#8d6e63"];
+function $(id){ return document.getElementById(id); }
+function pad(n){ return (n < 10 ? "0" : "") + n; }
+function esc(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function fmtTime(d){ var h = d.getHours(), m = d.getMinutes(), ap = h >= 12 ? "pm" : "am"; h = h % 12 || 12; return h + (m ? ":" + pad(m) : "") + ap; }
+function dayStart(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function addDays(d, n){ var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+function ymd(d){ return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function tint(hex, a){ var h = String(hex || "#999").replace("#",""); if (h.length === 3) h = h.charAt(0)+h.charAt(0)+h.charAt(1)+h.charAt(1)+h.charAt(2)+h.charAt(2);
+  return "rgba(" + parseInt(h.substr(0,2),16) + "," + parseInt(h.substr(2,2),16) + "," + parseInt(h.substr(4,2),16) + "," + a + ")"; }
+function on(el, fn){ el.addEventListener("click", fn, false); }
+function store(k, v){ try { if (v === undefined) return JSON.parse(localStorage.getItem("fp_" + k)); localStorage.setItem("fp_" + k, JSON.stringify(v)); } catch (e) { return null; } }
+
+/* ================= clock ================= */
+function tick(){
+  var d = new Date(), h = d.getHours() % 12 || 12;
+  $("clock").innerHTML = h + ":" + pad(d.getMinutes()) + "<span id='ampm'>" + (d.getHours() >= 12 ? "PM" : "AM") + "</span>";
+  $("today").innerHTML = "<b>" + DAYS[d.getDay()] + "</b>" + MONTHS[d.getMonth()] + " " + d.getDate();
+  $("sclock").innerHTML = h + ":" + pad(d.getMinutes());
+  if (d.getHours() === 0 && d.getMinutes() === 0) { render(); renderChores(); }
+}
+tick(); setInterval(tick, 15000);
+
+/* ================= data ================= */
+var CALS = [], EVENTS = [];   /* EVENTS: {title, start:Date, end:Date, allDay, color, who} */
+var WMO = {0:["Clear","\u2600"],1:["Mostly clear","\u2600"],2:["Partly cloudy","\u26C5"],3:["Cloudy","\u2601"],45:["Fog","\u2601"],48:["Fog","\u2601"],51:["Drizzle","\u2602"],53:["Drizzle","\u2602"],55:["Drizzle","\u2602"],56:["Freezing drizzle","\u2744"],57:["Freezing drizzle","\u2744"],61:["Light rain","\u2602"],63:["Rain","\u2602"],65:["Heavy rain","\u2602"],66:["Freezing rain","\u2744"],67:["Freezing rain","\u2744"],71:["Light snow","\u2744"],73:["Snow","\u2744"],75:["Heavy snow","\u2744"],77:["Snow","\u2744"],80:["Showers","\u2602"],81:["Showers","\u2602"],82:["Heavy showers","\u2602"],85:["Snow showers","\u2744"],86:["Snow showers","\u2744"],95:["Storms","\u26A1"],96:["Storms, hail","\u26A1"],99:["Storms, hail","\u26A1"]};
+function wmo(c){ return WMO[c] || ["",""]; }
+var WX = null;
+function showWx(j){
+  if (!j || !j.current) return; WX = j;
+  var c = j.current, d = j.daily;
+  $("wxicon").innerHTML = wmo(c.weather_code)[1];
+  $("wxnow").innerHTML = Math.round(c.temperature_2m) + "&deg;";
+  $("wxdesc").innerHTML = wmo(c.weather_code)[0] + " &middot; " + Math.round(d.temperature_2m_max[0]) + "&deg;/" + Math.round(d.temperature_2m_min[0]) + "&deg; &middot; " + esc(C.place || "");
+  render();
+}
+function wxForDay(day){ if (!WX) return ""; var k = ymd(day), d = WX.daily; for (var i = 0; i < d.time.length; i++) if (d.time[i] === k)
+  return "<div style='text-align:center;font-size:12px;color:#888;margin:-4px 0 6px'>" + wmo(d.weather_code[i])[1] + " " + Math.round(d.temperature_2m_max[i]) + "&deg;/" + Math.round(d.temperature_2m_min[i]) + "&deg;</div>"; return ""; }
+
+function xhr(url, ok, fail){
+  var x = new XMLHttpRequest();
+  try { x.open("GET", url, true); } catch (e) { if (fail) fail(e); return; }
+  x.onreadystatechange = function(){ if (x.readyState !== 4) return;
+    if (x.status === 200 || (x.status === 0 && x.responseText)) ok(x.responseText); else if (fail) fail("HTTP " + x.status); };
+  try { x.send(); } catch (e2) { if (fail) fail(e2); }
+}
+/* JSONP: a script tag is not subject to CORS, so this works from a file:// page on an old WebView */
+var jpN = 0;
+function jsonp(url, ok, fail){
+  var name = "jp" + (++jpN), s = document.createElement("script"), done = false;
+  var to = setTimeout(function(){ if (!done){ done = true; cleanup(); if (fail) fail("timeout"); } }, 30000);
+  function cleanup(){ try { delete window[name]; } catch (e) { window[name] = undefined; } if (s.parentNode) s.parentNode.removeChild(s); }
+  window[name] = function(d){ if (done) return; done = true; clearTimeout(to); cleanup(); ok(d); };
+  s.onerror = function(){ if (!done){ done = true; clearTimeout(to); cleanup(); if (fail) fail("network"); } };
+  s.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "cb=" + name + "&token=" + encodeURIComponent(C.token || "") + "&_=" + new Date().getTime();
+  document.body.appendChild(s);
+}
+
+/* --- source 1 (recommended): your Apps Script helper (calendars + weather, can add events) --- */
+function loadHelper(){
+  var s = addDays(dayStart(new Date()), -40), e = addDays(dayStart(new Date()), 50);
+  jsonp(C.helperUrl + "?action=all&start=" + s.getTime() + "&end=" + e.getTime(), function(d){
+    if (!d || !d.ok){ status("Calendar helper: " + (d && d.error)); return; }
+    CALS = d.calendars || []; var col = {}, nm = {};
+    for (var i = 0; i < CALS.length; i++){ col[CALS[i].id] = CALS[i].color || PALETTE[i % PALETTE.length]; nm[CALS[i].id] = CALS[i].name; }
+    EVENTS = [];
+    for (var j = 0; j < (d.events || []).length; j++){ var v = d.events[j];
+      EVENTS.push({ title: v.title, start: new Date(v.start), end: new Date(v.end), allDay: v.allDay, color: col[v.cal], who: nm[v.cal] }); }
+    if (d.photos && d.photos.length){ var seen = {}, np = (C.photoUrls || []).concat(d.photos), out = []; for (var q = 0; q < np.length; q++) if (!seen[np[q]]){ seen[np[q]] = 1; out.push(np[q]); } P = out; }
+    store("cache", { cals: CALS, ev: d.events, wx: d.weather });
+    showMembers(); if (d.weather) showWx(d.weather); render();
+  }, function(err){ status("Can't reach calendar helper (" + err + "), showing last saved copy"); });
+}
+function fromCache(){ var c = store("cache"); if (!c) return; CALS = c.cals || []; var col = {}, nm = {};
+  for (var i = 0; i < CALS.length; i++){ col[CALS[i].id] = CALS[i].color; nm[CALS[i].id] = CALS[i].name; }
+  for (var j = 0; j < (c.ev || []).length; j++){ var v = c.ev[j]; EVENTS.push({ title: v.title, start: new Date(v.start), end: new Date(v.end), allDay: v.allDay, color: col[v.cal], who: nm[v.cal] }); }
+  showMembers(); if (c.wx) showWx(c.wx); }
+
+/* weather when not using the helper: Open-Meteo (free, no key, CORS *). It uses a Let's Encrypt certificate, which
+   Android 4.4 doesn't trust -> needs Fully Kiosk "Ignore SSL Errors" ON (that is needed to load this page anyway). */
+function loadWxDirect(){
+  var q = "://api.open-meteo.com/v1/forecast?latitude=" + C.lat + "&longitude=" + C.lon + "&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=7";
+  xhr("https" + q, function(t){ try { showWx(JSON.parse(t)); } catch (e) {} }, function(){ $("wxdesc").innerHTML = "Weather unavailable &middot; turn on Ignore SSL Errors"; });
+}
+function status(m){ var el = $("week"); if (!EVENTS.length) el.innerHTML = "<div class='muted' style='width:100%'>" + esc(m) + "</div>"; if (window.console) console.log(m); }
+function refresh(){ if (C.helperUrl) loadHelper(); else loadWxDirect(); }
+
+/* ================= views ================= */
+function showMembers(){
+  var h = ""; for (var i = 0; i < CALS.length; i++) h += "<span class='mem'><i style='background:" + esc(CALS[i].color) + "'>" + esc(String(CALS[i].name).charAt(0).toUpperCase()) + "</i>" + esc(CALS[i].name) + "</span>";
+  $("members").innerHTML = h;
+  var o = ""; for (var j = 0; j < CALS.length; j++) o += "<option value='" + esc(CALS[j].id) + "'>" + esc(CALS[j].name) + "</option>"; $("fcal").innerHTML = o;
+}
+function eventsOn(day){ var s = dayStart(day), e = addDays(s, 1), out = [];
+  for (var i = 0; i < EVENTS.length; i++){ var v = EVENTS[i]; if (v.start < e && (v.end > s || (+v.start === +s))) out.push(v); }
+  out.sort(function(a, b){ return (b.allDay - a.allDay) || (a.start - b.start); }); return out; }
+function chip(v){ if (v.allDay) return "<div class='chip ad' style='background:" + esc(v.color) + "'>" + esc(v.title) + "</div>";
+  return "<div class='chip' style='border-left-color:" + esc(v.color) + ";background:" + tint(v.color, .14) + "'><span class='t'>" + fmtTime(v.start) + "</span>" + esc(v.title) + "</div>"; }
+var view = "week", monthOff = 0;
+function render(){ if (view === "chores") renderChores(); if (view === "week") renderWeek(); else if (view === "month") renderMonth(); else if (view === "day") renderDay(); }
+var CONNECT = "<div class='connect'><b>Connect your Google Calendar</b><br>Tap <span class='tab' style='padding:4px 10px'>&#9881; Settings</span> and paste your Apps Script link to see everyone's events here, color-coded.</div>";
+function renderWeek(){
+  var t = dayStart(new Date()), s = C.weekStartsToday ? t : addDays(t, -t.getDay()), h = "";
+  for (var i = 0; i < 7; i++){ var d = addDays(s, i), evs = eventsOn(d), isT = +d === +t;
+    h += "<div class='wcol" + (isT ? " today" : "") + "'><div class='wh'>" + DAYS[d.getDay()].substr(0,3) + "</div><div class='wn'>" + d.getDate() + "</div>" + wxForDay(d);
+    for (var j = 0; j < evs.length; j++) h += chip(evs[j]);
+    h += "</div>"; }
+  $("week").innerHTML = h + (C.helperUrl ? "" : CONNECT); }
+function renderMonth(){
+  var now = new Date(), first = new Date(now.getFullYear(), now.getMonth() + monthOff, 1), s = addDays(first, -first.getDay()), t = dayStart(now), h = "";
+  $("mtitle").innerHTML = MONTHS[first.getMonth()] + " " + first.getFullYear();
+  for (var r = 0; r < 6; r++){ h += "<div class='mrow'>";
+    for (var c = 0; c < 7; c++){ var d = addDays(s, r * 7 + c), evs = eventsOn(d);
+      h += "<div class='mcell" + (d.getMonth() !== first.getMonth() ? " other" : "") + (+d === +t ? " today" : "") + "'><span class='n'>" + d.getDate() + "</span>";
+      for (var k = 0; k < evs.length && k < 3; k++) h += "<div class='mev' style='background:" + esc(evs[k].color) + "'>" + (evs[k].allDay ? "" : fmtTime(evs[k].start) + " ") + esc(evs[k].title) + "</div>";
+      if (evs.length > 3) h += "<div style='color:#999'>+" + (evs.length - 3) + " more</div>";
+      h += "</div>"; }
+    h += "</div>"; }
+  $("mgrid").innerHTML = h; }
+function renderDay(){
+  var d = new Date(), evs = eventsOn(d), h = "<h2>Today &middot; " + DAYS[d.getDay()] + ", " + MONTHS[d.getMonth()] + " " + d.getDate() + "</h2>";
+  if (!C.helperUrl) h += CONNECT.replace("class='connect'", "class='connect' style='position:static;margin:20px auto'");
+  else if (!evs.length) h += "<div class='muted'>Nothing on the calendar today</div>";
+  for (var i = 0; i < evs.length; i++){ var v = evs[i];
+    h += "<div class='dev' style='background:" + tint(v.color, .14) + ";border-left:6px solid " + esc(v.color) + "'><span class='tm'>" + (v.allDay ? "All day" : fmtTime(v.start) + " &ndash; " + fmtTime(v.end)) + "</span><span style='-webkit-flex:1;flex:1'>" + esc(v.title) + "</span><span style='font-size:14px;color:#888'>" + esc(v.who) + "</span></div>"; }
+  var tm = evs, nx = eventsOn(addDays(d, 1)); if (nx.length){ h += "<h2 style='margin-top:16px;font-size:20px;color:#888'>Tomorrow</h2>"; for (var j = 0; j < nx.length; j++) h += chip(nx[j]); }
+  $("day").innerHTML = h; }
+on($("mprev"), function(){ monthOff--; renderMonth(); }); on($("mnext"), function(){ monthOff++; renderMonth(); });
+
+/* ================= chores (saved on the tablet, reset every day) ================= */
+function choreState(){ var st = store("chores") || {}; var k = ymd(new Date()); if (st.day !== k){ st.stars = st.stars || {};
+  if (st.day && st.done){ for (var who in st.done) if (st.done.hasOwnProperty(who)) st.stars[who] = (st.stars[who] || 0) + st.done[who].length; }
+  st.day = k; st.done = {}; store("chores", st); } return st; }
+function renderChores(){
+  var ch = C.chores || {}, st = choreState(), h = "", i = 0;
+  for (var who in ch){ if (!ch.hasOwnProperty(who)) continue; var col = PALETTE[i++ % PALETTE.length], done = st.done[who] || [];
+    for (var c = 0; c < CALS.length; c++) if (String(CALS[c].name).toLowerCase() === who.toLowerCase()) col = CALS[c].color;
+    h += "<div class='ccol'><h3><i style='background:" + esc(col) + "'></i>" + esc(who) + "<span class='stars'>\u2605 " + ((st.stars[who] || 0) + done.length) + "</span></h3>";
+    for (var j = 0; j < ch[who].length; j++){ var isD = done.indexOf(ch[who][j]) >= 0;
+      h += "<div class='item" + (isD ? " done" : "") + "' data-who='" + esc(who) + "' data-c='" + esc(ch[who][j]) + "'><span class='box'>" + (isD ? "\u2713" : "") + "</span><span class='lbl'>" + esc(ch[who][j]) + "</span></div>"; }
+    h += "</div>"; }
+  $("chores").innerHTML = h || "<div class='muted' style='width:100%'>No chores yet - add some in &#9881; Settings.</div>";
+}
+on($("chores"), function(ev){ var el = ev.target; while (el && el !== this && !(el.getAttribute && el.getAttribute("data-c"))) el = el.parentNode;
+  if (!el || el === this) return; var st = choreState(), who = el.getAttribute("data-who"), c = el.getAttribute("data-c"), d = st.done[who] || (st.done[who] = []), ix = d.indexOf(c);
+  if (ix >= 0) d.splice(ix, 1); else d.push(c); store("chores", st); renderChores(); });
+
+/* ================= lists (grocery, to-do... saved on the tablet) ================= */
+function listData(){ var L = store("lists"); if (!L){ L = {}; var names = C.lists || ["Groceries","To Do"]; for (var i = 0; i < names.length; i++) L[names[i]] = []; store("lists", L); } return L; }
+function renderLists(){
+  var L = listData(), h = "", n = 0;
+  for (var name in L){ if (!L.hasOwnProperty(name)) continue;
+    h += "<div class='ccol'><h3>" + esc(name) + "</h3><div class='addrow'><input id='li" + n + "' placeholder='Add item'><span class='btn' data-add='" + esc(name) + "' data-in='li" + n + "'>Add</span></div>";
+    for (var j = 0; j < L[name].length; j++){ var it = L[name][j];
+      h += "<div class='item" + (it.d ? " done" : "") + "'><span class='box' data-l='" + esc(name) + "' data-i='" + j + "'>" + (it.d ? "\u2713" : "") + "</span><span class='lbl'>" + esc(it.t) + "</span><span class='del' data-x='" + esc(name) + "' data-i='" + j + "'>&times;</span></div>"; }
+    h += "</div>"; n++; }
+  $("lists").innerHTML = h; }
+on($("lists"), function(ev){ var t = ev.target, L = listData(), a;
+  if ((a = t.getAttribute("data-add"))){ var inp = $(t.getAttribute("data-in")), v = inp.value.replace(/^\s+|\s+$/g, ""); if (v){ L[a].push({ t: v, d: 0 }); store("lists", L); renderLists(); } }
+  else if ((a = t.getAttribute("data-l"))){ var it = L[a][+t.getAttribute("data-i")]; it.d = it.d ? 0 : 1; store("lists", L); renderLists(); }
+  else if ((a = t.getAttribute("data-x"))){ L[a].splice(+t.getAttribute("data-i"), 1); store("lists", L); renderLists(); } });
+
+/* ================= add event (needs the Apps Script helper) ================= */
+on($("addbtn"), function(){
+  if (!C.helperUrl){ alertBox("Adding events needs your Apps Script link - add it in Settings (gear button)."); return; }
+  $("fdate").value = ymd(new Date()); $("ftitle").value = ""; $("msg").innerHTML = ""; $("sheet").style.display = "block"; });
+on($("fcancel"), function(){ $("sheet").style.display = "none"; });
+on($("fsave"), function(){
+  var title = $("ftitle").value.replace(/^\s+|\s+$/g, ""), date = $("fdate").value, time = $("ftime").value;
+  if (!title){ $("msg").innerHTML = "Type a title"; return; }
+  if (!/^\d{4}-\d\d-\d\d$/.test(date)){ $("msg").innerHTML = "Date must look like 2026-11-24"; return; }
+  if (!$("fall").checked && !/^\d\d?:\d\d$/.test(time)){ $("msg").innerHTML = "Time must look like 17:30"; return; }
+  $("msg").innerHTML = "Saving&hellip;";
+  jsonp(C.helperUrl + "?action=add&title=" + encodeURIComponent(title) + "&cal=" + encodeURIComponent($("fcal").value) + "&date=" + date + "&time=" + encodeURIComponent(time) + "&allDay=" + ($("fall").checked ? 1 : 0) + "&mins=60",
+    function(d){ if (d && d.ok){ $("sheet").style.display = "none"; loadHelper(); } else $("msg").innerHTML = "Error: " + esc(d && d.error); },
+    function(e){ $("msg").innerHTML = "Couldn't reach Google (" + esc(e) + ")"; }); });
+function alertBox(m){ $("msg").innerHTML = esc(m); $("sheet").style.display = "block"; $("ftitle").style.display = "none"; setTimeout(function(){ $("sheet").style.display = "none"; $("ftitle").style.display = ""; }, 4000); }
+
+/* ================= on-tablet settings ================= */
+function trim(x){ return String(x).replace(/^\s+|\s+$/g, ""); }
+on($("setbtn"), function(){
+  $("sHelper").value = C.helperUrl || ""; $("sToken").value = C.token || "";
+  var lines = []; for (var w in C.chores) if (C.chores.hasOwnProperty(w)) lines.push(w + ": " + C.chores[w].join(", "));
+  $("sChores").value = lines.join("\n"); $("sLists").value = (C.lists || []).join(", "); $("sPhotos").value = (C.photoUrls || []).join("\n");
+  $("sIdle").value = C.idleMinutes; $("sView").value = C.startView || "week"; $("sPlace").value = C.place; $("sLat").value = C.lat; $("sLon").value = C.lon;
+  $("sMsg").innerHTML = ""; $("settings").style.display = "block"; });
+on($("sCancel"), function(){ $("settings").style.display = "none"; });
+on($("sSave"), function(){
+  var n = {}, i, ch = {}, cl = $("sChores").value.split(/\n/);
+  for (i = 0; i < cl.length; i++){ var c = cl[i].indexOf(":"); if (c < 1) continue; var who = trim(cl[i].substr(0, c)), items = [], raw = cl[i].substr(c + 1).split(",");
+    for (var j = 0; j < raw.length; j++) if (trim(raw[j])) items.push(trim(raw[j])); if (who) ch[who] = items; }
+  var ls = [], lr = $("sLists").value.split(","); for (i = 0; i < lr.length; i++) if (trim(lr[i])) ls.push(trim(lr[i]));
+  var ps = [], pr = $("sPhotos").value.split(/\s*\n\s*/); for (i = 0; i < pr.length; i++) if (/^https?:\/\//.test(trim(pr[i]))) ps.push(trim(pr[i]));
+  n.helperUrl = trim($("sHelper").value); n.token = trim($("sToken").value); n.chores = ch; n.lists = ls; n.photoUrls = ps;
+  n.idleMinutes = +$("sIdle").value || 0; n.startView = $("sView").value; n.place = trim($("sPlace").value);
+  n.lat = parseFloat($("sLat").value) || DEFAULTS.lat; n.lon = parseFloat($("sLon").value) || DEFAULTS.lon;
+  if (n.helperUrl && !/^https:\/\/script\.google(usercontent)?\.com\//.test(n.helperUrl)){ $("sMsg").innerHTML = "The Apps Script link should start with https://script.google.com/"; return; }
+  /* add any new list names, keep existing items */
+  var L = listData(), NL = {}; for (i = 0; i < ls.length; i++) NL[ls[i]] = L[ls[i]] || []; store("lists", NL);
+  store("settings", n); if (n.helperUrl !== C.helperUrl) store("cache", null); location.reload(); });
+var resetArm = 0;
+on($("sReset"), function(){ if (new Date().getTime() - resetArm < 5000){ try { localStorage.clear(); } catch (e) {} location.reload(); return; }
+  resetArm = new Date().getTime(); $("sMsg").innerHTML = "Tap Reset all again within 5 seconds to erase settings, chores, stars and lists."; });
+
+/* ================= tabs ================= */
+var tabs = document.querySelectorAll(".tab[data-v]");
+for (var ti = 0; ti < tabs.length; ti++) on(tabs[ti], function(){
+  var v = this.getAttribute("data-v"); if (v === "photos"){ startSaver(); return; }
+  view = v; for (var k = 0; k < tabs.length; k++) tabs[k].className = "tab" + (tabs[k] === this ? " on" : "");
+  var vs = document.querySelectorAll(".view"); for (var m = 0; m < vs.length; m++) vs[m].className = "view" + (vs[m].id === v ? " on" : "");
+  if (v === "chores") renderChores(); else if (v === "lists") renderLists(); else { monthOff = 0; render(); } });
+
+/* ================= photo screensaver when idle ================= */
+var P = (C.photoUrls || []).slice(0), pi = -1, layers = [], saverOn = false, photoTimer = null, lastTouch = new Date().getTime();
+for (var li = 0; li < 2; li++){ var el = document.createElement("div"); el.className = "ph"; $("saver").insertBefore(el, $("sinfo")); layers.push(el); }
+if (C.shufflePhotos){ for (var s = P.length - 1; s > 0; s--){ var r = Math.floor(Math.random() * (s + 1)), tmp = P[s]; P[s] = P[r]; P[r] = tmp; } }
+function nextPhoto(){ if (!P.length) return; pi = (pi + 1) % P.length; var a = layers[pi % 2], b = layers[(pi + 1) % 2];
+  a.style.backgroundImage = "url('" + P[pi].replace(/'/g, "%27") + "')"; a.className = "ph on"; b.className = "ph";
+  var nx = null, now = new Date(); for (var i = 0; i < EVENTS.length; i++) if (!EVENTS[i].allDay && EVENTS[i].start > now){ nx = EVENTS[i]; break; }
+  $("snext").innerHTML = (WX ? Math.round(WX.current.temperature_2m) + "&deg; " + wmo(WX.current.weather_code)[0] : "") + (nx ? " &middot; Next: " + esc(nx.title) + " " + (dayStart(nx.start) > dayStart(now) ? DAYS[nx.start.getDay()].substr(0,3) + " " : "") + fmtTime(nx.start) : ""); }
+function startSaver(){ if (saverOn) return; saverOn = true; $("saver").style.display = "block"; $("saver").className = P.length ? "" : "grad";
+  nextPhoto(); if (!P.length) fillInfo(); photoTimer = setInterval(function(){ if (P.length) nextPhoto(); else fillInfo(); }, (C.photoSeconds || 15) * 1000); }
+function fillInfo(){ var now = new Date(), nx = null; for (var i = 0; i < EVENTS.length; i++) if (!EVENTS[i].allDay && EVENTS[i].start > now){ nx = EVENTS[i]; break; }
+  $("snext").innerHTML = DAYS[now.getDay()] + ", " + MONTHS[now.getMonth()] + " " + now.getDate() + (WX ? " &middot; " + Math.round(WX.current.temperature_2m) + "&deg; " + wmo(WX.current.weather_code)[0] : "") + (nx ? "<br>Next: " + esc(nx.title) + " " + fmtTime(nx.start) : ""); }
+function stopSaver(){ saverOn = false; $("saver").style.display = "none"; clearInterval(photoTimer); }
+document.addEventListener("touchstart", function(){ lastTouch = new Date().getTime(); if (saverOn) stopSaver(); }, true);
+document.addEventListener("mousedown", function(){ lastTouch = new Date().getTime(); }, true);
+on($("saver"), function(){ stopSaver(); });
+setInterval(function(){ if (!saverOn && C.idleMinutes > 0 && $("sheet").style.display !== "block" && new Date().getTime() - lastTouch > C.idleMinutes * 60000) startSaver(); }, 10000);
+
+/* ================= start ================= */
+fromCache(); render(); refresh();
+(function(){ var sv = location.hash.substr(1) || C.startView; if (sv === "photos"){ setTimeout(startSaver, 1500); return; }
+  for (var i = 0; i < tabs.length; i++) if (tabs[i].getAttribute("data-v") === sv) tabs[i].click(); })();
+setInterval(refresh, (C.refreshMinutes || 10) * 60000);
+setTimeout(function(){ location.reload(); }, 6 * 3600 * 1000);   /* keep the old WebView from leaking memory */
+</script>
+</body>
+</html>
